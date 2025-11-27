@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КАЛЬКУЛЯТОР РИСКА СДЕЛКИ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Общая темная тема */
+        body {
+            background-color: #1a202c; /* Основной темный фон */
+            color: #e2e8f0; /* Светлый текст */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Стили для полей ввода/вывода (темнее, но гармоничнее) */
+        .input-field, .result-field {
+            background-color: #2d3748; /* Более темный сине-серый цвет */
+            color: #edf2f7; /* Светлый текст в полях */
+            border: 1px solid #4a5568; /* Тонкая рамка */
+        }
+        /* Фокус на полях ввода */
+        .input-field:focus {
+            border-color: #4299e1; /* Голубая рамка при фокусе */
+            box-shadow: 0 0 0 1px #4299e1;
+        }
+        /* Стили для выделенного поля "Объем входа, $" */
+        #volume_usd_output {
+            background-color: #4a5568; /* Выделенный фон, немного светлее других полей */
+            font-weight: bold;
+            color: #90cdf4; /* Голубой текст для акцента */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-white tracking-wider">КАЛЬКУЛЯТОР РИСКА СДЕЛКИ</h1>
+        </header>
+
+        <main class="bg-gray-800 p-6 rounded-lg shadow-2xl">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <div>
+                    <h2 class="text-2xl font-semibold mb-6 border-b border-gray-700 pb-2 text-blue-300">Ввод данных</h2>
+                    
+                    <form id="risk_calculator_form" class="space-y-6">
+
+                        <div class="flex items-center">
+                            <label for="deposit_size" class="w-1/2 text-lg">Размер депозита, $</label>
+                            <input type="number" id="deposit_size" value="1000" min="0" step="100" class="input-field w-1/4 p-2 rounded mr-4" oninput="calculate()">
+                            <span class="text-sm text-gray-400 w-1/4">(Общий баланс счета)</span>
+                        </div>
+
+                        <div class="flex items-center">
+                            <label for="entry_price" class="w-1/2 text-lg">Цена входа, $</label>
+                            <input type="number" id="entry_price" value="100" min="0.01" step="0.01" class="input-field w-1/4 p-2 rounded mr-4" oninput="calculate()">
+                            <span class="text-sm text-gray-400 w-1/4">(Цена, по которой планируешь вход)</span>
+                        </div>
+
+                        <div class="flex items-center">
+                            <label for="stop_price" class="w-1/2 text-lg">Стоп</label>
+                            <input type="number" id="stop_price" value="99" min="0.01" step="0.01" class="input-field w-1/4 p-2 rounded mr-4" oninput="calculate()">
+                            <span class="text-sm text-gray-400 w-1/4">(Цена срабатывания стоп-лосса)</span>
+                        </div>
+
+                        <div class="flex items-center">
+                            <label for="risk_percent" class="w-1/2 text-lg">Риск, %</label>
+                            <input type="number" id="risk_percent" value="1" min="0.01" max="100" step="0.1" class="input-field w-1/4 p-2 rounded mr-4" oninput="calculate()">
+                            <span class="text-sm text-gray-400 w-1/4">(Процент от депозита, который готов потерять)</span>
+                        </div>
+
+                        <div class="flex items-center">
+                            <label for="leverage" class="w-1/2 text-lg">Размер плеча</label>
+                            <input type="number" id="leverage" value="1" min="1" step="1" class="input-field w-1/4 p-2 rounded mr-4" oninput="calculate()">
+                            <span class="text-sm text-gray-400 w-1/4">(Плечо, используемое при входе)</span>
+                        </div>
+                    </form>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-semibold mb-6 border-b border-gray-700 pb-2 text-green-300">Результаты расчета</h2>
+                    
+                    <div class="space-y-6">
+
+                        <div class="flex items-center">
+                            <label class="w-1/2 text-lg">Процент лосса</label>
+                            <output id="loss_percent_output" class="result-field w-1/4 p-2 rounded mr-4 text-center"></output>
+                            <span class="text-sm text-gray-400 w-1/4">(Движение цены до стопа в %)</span>
+                        </div>
+
+                        <div class="flex items-center">
+                            <label class="w-1/2 text-xl font-bold text-yellow-400">Объем входа, $</label>
+                            <output id="volume_usd_output" class="result-field w-1/4 p-2 rounded mr-4 text-center text-xl"></output>
+                            <span class="text-sm text-gray-400 w-1/4">(Размер позиции в долларах)</span>
+                        </div>
+
+                        <div class="flex items-center">
+                            <label class="w-1/2 text-lg">Объем входа, валюта</label>
+                            <output id="volume_currency_output" class="result-field w-1/4 p-2 rounded mr-4 text-center"></output>
+                            <span class="text-sm text-gray-400 w-1/4">(Количество монет/контрактов)</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+        
+        
+    </div>
+
+    <script>
+        function calculate() {
+            // Получение значений
+            const depositSize = parseFloat(document.getElementById('deposit_size').value);
+            const entryPrice = parseFloat(document.getElementById('entry_price').value);
+            const stopPrice = parseFloat(document.getElementById('stop_price').value);
+            const riskPercent = parseFloat(document.getElementById('risk_percent').value);
+            const leverage = parseFloat(document.getElementById('leverage').value);
+
+            // Проверка на корректность ввода (предотвращение деления на ноль и некорректных значений)
+            if (isNaN(depositSize) || isNaN(entryPrice) || isNaN(stopPrice) || isNaN(riskPercent) || isNaN(leverage) || entryPrice === 0 || leverage === 0) {
+                document.getElementById('loss_percent_output').value = '---';
+                document.getElementById('volume_usd_output').value = '---';
+                document.getElementById('volume_currency_output').value = '---';
+                return;
+            }
+
+            // Убедимся, что стоп-лосс не совпадает с ценой входа (чтобы избежать деления на ноль при расчете Процента лосса)
+            if (entryPrice === stopPrice) {
+                 document.getElementById('loss_percent_output').value = 'Ошибка: Стоп = Цена входа';
+                 document.getElementById('volume_usd_output').value = '---';
+                 document.getElementById('volume_currency_output').value = '---';
+                return;
+            }
+            
+            // === 1. Процент лосса ===
+            // Процент лосса = (Цена входа, $ - Стоп) / Цена входа, $ * 100
+            // Используем Math.abs для получения положительного значения лосса
+            const lossPercent = Math.abs((entryPrice - stopPrice) / entryPrice * 100);
+
+            // === 2. Объем входа, $ ===
+            // Объем входа, $ = Размер депозита, $ / Процент лосса * Риск, % / Размер плеча
+            // Важно: Процент лосса и Риск, % здесь уже в процентах (например, 1% - это 1)
+            const volumeUSD = (depositSize / lossPercent) * (riskPercent / leverage);
+            
+            // === 3. Объем входа, валюта ===
+            // Объем входа, валюта = Объем входа, $ / Цена входа, $
+            const volumeCurrency = volumeUSD / entryPrice;
+
+            // === Отображение результатов ===
+
+            // Процент лосса
+            document.getElementById('loss_percent_output').value = `${lossPercent.toFixed(2)} %`;
+
+            // Объем входа, $
+            document.getElementById('volume_usd_output').value = `${volumeUSD.toFixed(2)} $`;
+
+            // Объем входа, валюта
+            document.getElementById('volume_currency_output').value = `${volumeCurrency.toFixed(4)}`;
+        }
+
+        // Вызываем расчет при загрузке страницы, чтобы отобразить значения по умолчанию
+        window.onload = calculate;
+
+    </script>
+
+</body>
+</html>
